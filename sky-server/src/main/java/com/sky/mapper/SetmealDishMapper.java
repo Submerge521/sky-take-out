@@ -17,4 +17,6 @@ import java.util.List;
 public interface SetmealDishMapper {
 
     List<Long> getSetmealIdsByDishIds(List<Long> dishIds);
+
+
 }

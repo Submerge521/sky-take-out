@@ -11,11 +11,14 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper {
 
     /**
      * 根据分类id查询菜品数量
+     *
      * @param categoryId
      * @return
      */
@@ -24,6 +27,7 @@ public interface DishMapper {
 
     /**
      * 新增菜品和对应的口味
+     *
      * @param dish
      */
     @AutoFill(value = OperationType.INSERT)
@@ -31,6 +35,7 @@ public interface DishMapper {
 
     /**
      * 菜品分页查询
+     *
      * @param dishPageQueryDTO
      * @return
      */
@@ -38,6 +43,7 @@ public interface DishMapper {
 
     /**
      * 根据id进行查询菜品
+     *
      * @param id
      * @return
      */
@@ -46,8 +52,22 @@ public interface DishMapper {
 
     /**
      * 根据id删除菜品
+     *
      * @param id
      */
     @Delete("delete from dish where id = #{id}")
     void deleteById(Long id);
+
+    /**
+     * 根据菜品id集合批量删除菜品数据
+     */
+    void deleteByIds(List<Long> ids);
+
+    /**
+     * 根据id动态修改菜品数据
+     *
+     * @param dish
+     */
+    @AutoFill(value = OperationType.UPDATE)
+    void update(Dish dish);
 }
