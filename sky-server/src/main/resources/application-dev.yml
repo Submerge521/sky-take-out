@@ -16,3 +16,6 @@ sky:
     access-key-id: LTAI5tLQJgvd2YnQsQKESgfd
     access-key-secret: LnAWNWsQV0C27DUslBsUTHdLY7UA6m
     bucket-name: sky-take-out-submerge
+  wechat:
+    appid: wxd4f16ef7fcbb645c
+    secret: 7d1b66205fc25ab6efb5434824583cbf
