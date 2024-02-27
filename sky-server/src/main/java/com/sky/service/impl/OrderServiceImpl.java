@@ -1,6 +1,7 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
@@ -467,9 +468,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 通过websockt向浏览器推送消息
         Map map = new HashMap();
-        map.put("type",1); // 1表示来单提醒，2表示客户催单
-        map.put("orderId",ordersDB.getId());
-        map.put("content","订单号："+outTradeNo);
+        map.put("type", 1); // 1表示来单提醒，2表示客户催单
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + outTradeNo);
 
         String json = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(json);
@@ -486,7 +487,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
 //        // 当前登录用户id
-//        Long userId = BaseContext.getCurrentId();
+        Long userId = BaseContext.getCurrentId();
 //        User user = userMapper.getById(userId);
 //
 //        //调用微信支付接口，生成预支付交易单
@@ -496,6 +497,31 @@ public class OrderServiceImpl implements OrderService {
 //                "苍穹外卖订单", //商品描述
 //                user.getOpenid() //微信用户的openid
 //        );
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code", "ORDERPAID");
+
+        OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
+        vo.setPackageStr(jsonObject.getString("package"));
+        Orders ordersDB = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
+           // 根据订单id更新订单的状态、支付方式、支付状态、结账时间
+        Orders orders = Orders.builder()
+                .id(ordersDB.getId())
+                .status(Orders.TO_BE_CONFIRMED)
+                .payStatus(Orders.PAID)
+                .checkoutTime(LocalDateTime.now())
+                .build();
+
+        orderMapper.update(orders);
+
+         // 通过websockt向浏览器推送消息
+        Map map = new HashMap();
+        map.put("type", 1); // 1表示来单提醒，2表示客户催单
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + ordersPaymentDTO.getOrderNumber());
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
 //
 //        if (jsonObject.getString("code") != null && jsonObject.getString("code").equals("ORDERPAID")) {
 //            throw new OrderBusinessException("该订单已支付");
@@ -504,9 +530,33 @@ public class OrderServiceImpl implements OrderService {
 //        OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
 //        vo.setPackageStr(jsonObject.getString("package"));
 //
-        return null;
+        return vo;
 //    }
 //    }
+    }
+
+    /**
+     * 客户催单
+     *
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        // 根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+
+        // 校验订单是否存在
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+  // 通过websockt向浏览器推送消息
+        Map map = new HashMap();
+        map.put("type", 2); // 1表示来单提醒，2表示客户催单
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号：" + ordersDB.getNumber());
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 }
 

@@ -122,4 +122,10 @@ public interface OrderService {
      * @return
      */
     OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception;
+
+    /**
+     * 客户催单
+     * @param id
+     */
+    void reminder(Long id);
 }
